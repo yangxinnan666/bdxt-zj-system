@@ -1,0 +1,400 @@
+/* 响应式样式 - 现代专业设计 */
+
+/* 中等屏幕 (平板, 768px以下) */
+@media (max-width: 768px) {
+  /* 容器间距 */
+  .container {
+    padding: 1rem;
+  }
+  
+  /* 排版调整 */
+  h1, .h1 {
+    font-size: 2rem;
+  }
+  
+  h2, .h2 {
+    font-size: 1.75rem;
+  }
+  
+  h3, .h3 {
+    font-size: 1.5rem;
+  }
+  
+  /* 卡片边距 */
+  .card {
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  /* 卡片内容内边距 */
+  .card-body {
+    padding: 1.25rem;
+  }
+  
+  /* 按钮样式 */
+  .btn {
+    padding: 0.85rem 1.25rem;
+    font-size: 1rem;
+    width: 100%;
+    margin-bottom: 0.75rem;
+  }
+  
+  /* 按钮组 */
+  .btn-group {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  /* 表单元素 */
+  .form-control,
+  .form-select {
+    padding: 0.85rem 1rem;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    border-radius: var(--border-radius-md);
+  }
+  
+  /* 表格样式 */
+  .table {
+    font-size: 0.9rem;
+  }
+  
+  .table th,
+  .table td {
+    padding: 0.75rem;
+  }
+  
+  /* 表格响应式处理 */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+    border-radius: var(--border-radius-lg);
+  }
+  
+  /* 列布局 */
+  .row > * {
+    margin-bottom: 1rem;
+  }
+  
+  /* 导航菜单 */
+  .nav.flex-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .nav-link {
+    padding: 0.85rem 1rem;
+    font-size: 1rem;
+    text-align: center;
+    border-radius: var(--border-radius-md);
+  }
+  
+  /* 导航标签页 */
+  .nav-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .nav-tabs .nav-item {
+    flex: 0 0 auto;
+  }
+  
+  .nav-tabs .nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  /* 移动端导航优化 */
+  .mobile-nav {
+    display: block;
+  }
+  
+  .desktop-nav {
+    display: none;
+  }
+}
+
+/* 小屏幕设备 (手机, 576px以下) */
+@media (max-width: 576px) {
+  /* 容器间距 */
+  .container {
+    padding: 0.75rem;
+  }
+  
+  /* 排版调整 */
+  h1, .h1 {
+    font-size: 1.75rem;
+  }
+  
+  h2, .h2 {
+    font-size: 1.5rem;
+  }
+  
+  h3, .h3 {
+    font-size: 1.25rem;
+  }
+  
+  h4, .h4 {
+    font-size: 1.125rem;
+  }
+  
+  /* 导航菜单 */
+  .nav-link {
+    padding: 0.85rem 1rem;
+    font-size: 1rem;
+    text-align: center;
+  }
+  
+  /* 统计卡片 */
+  .col-md-4 {
+    margin-bottom: 1.5rem;
+  }
+  
+  /* 表单行 */
+  .row {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+  }
+  
+  .col-md-6,
+  .col-md-4,
+  .col-md-3 {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  /* 按钮间距 */
+  .btn {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  /* 输入框焦点样式 */
+  .form-control:focus,
+  .form-select:focus {
+    font-size: 1rem;
+    /* 防止iOS放大输入框 */
+  }
+  
+  /* 卡片内容内边距 */
+  .card-body {
+    padding: 1rem;
+  }
+  
+  /* 表格调整 */
+  .table {
+    font-size: 0.875rem;
+  }
+  
+  .table th,
+  .table td {
+    padding: 0.5rem;
+  }
+  
+  /* 表格操作按钮 */
+  .table-actions {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .table-actions .btn {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  /* 状态标签 */
+  .table-status {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    white-space: nowrap;
+  }
+  
+  /* 登录页面调整 */
+  .card {
+    margin: 0 10px;
+    box-shadow: var(--shadow-md);
+  }
+}
+
+/* 超小屏幕设备 (375px以下) */
+@media (max-width: 375px) {
+  /* 容器调整 */
+  .container {
+    padding: 0.5rem;
+  }
+  
+  /* 排版调整 */
+  h1, .h1 {
+    font-size: 1.5rem;
+  }
+  
+  h2, .h2 {
+    font-size: 1.25rem;
+  }
+  
+  /* 按钮调整 */
+  .btn {
+    padding: 0.625rem;
+    font-size: 0.875rem;
+  }
+  
+  /* 表单调整 */
+  .form-control,
+  .form-select {
+    padding: 0.625rem;
+  }
+  
+  /* 卡片调整 */
+  .card-body {
+    padding: 0.875rem;
+  }
+}
+
+/* 表格响应式处理 */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--border-radius-lg);
+}
+
+/* 防止移动端点击高亮 */
+* {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+}
+
+/* 优化移动端滚动体验 */
+body {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* 导航标签页优化 */
+@media (max-width: 768px) {
+  .nav-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-bottom: 2px solid var(--border-color);
+  }
+  
+  .nav-tabs .nav-item {
+    flex: 0 0 auto;
+  }
+  
+  .nav-tabs .nav-link {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* 报单系统状态选择器在移动端的优化 */
+@media (max-width: 768px) {
+  select.form-select-sm {
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
+/* 高分辨率屏幕优化 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* 边框和阴影优化 */
+  .card, .btn, .form-control {
+    border-width: 0.5px;
+  }
+}
+
+/* 打印样式 */
+@media print {
+  /* 隐藏不必要元素 */
+  nav, footer, .btn, .card-header, .card-footer {
+    display: none !important;
+  }
+  
+  /* 调整打印样式 */
+  body {
+    font-size: 12pt;
+    color: #000;
+    background: #fff;
+  }
+  
+  .container {
+    padding: 0;
+  }
+  
+  .card {
+    box-shadow: none;
+    border: 1px solid #000;
+    margin-bottom: 1rem;
+  }
+  
+  .table {
+    border: 1px solid #000;
+  }
+  
+  .table th,
+  .table td {
+    border: 1px solid #000;
+  }
+}
+
+/* 滚动条优化 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--border-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* 移动端滚动条调整 */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+/* 移动端交互优化 */
+@media (hover: none) {
+  /* 导航链接点击效果 */
+  .nav-link:active {
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+  }
+  
+  /* 按钮点击效果 */
+  .btn:active {
+    transform: translateY(1px);
+  }
+  
+  /* 卡片点击效果 */
+  .card:active {
+    transform: translateY(-1px);
+  }
+}
+
+/* 禁用文本选择（特定元素） */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
