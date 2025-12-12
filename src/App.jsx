@@ -15,8 +15,11 @@ function App() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    console.log('App组件初始化 - 开始加载用户和认证状态');
+    
     // 检查用户登录状态
     const checkUser = async () => {
+      console.log('开始检查用户登录状态...');
       // 设置更短的超时时间，3秒后超时
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('与服务器通信超时')), 3000)
@@ -26,43 +29,56 @@ function App() {
         setError(null)
         
         // 尝试从本地存储先获取用户信息，提高加载速度
+        console.log('检查本地存储中的用户信息...');
         const storedUser = localStorage.getItem('supabase.auth.user')
         if (storedUser) {
-          setUser(JSON.parse(storedUser))
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          console.log('✓ 从本地存储恢复用户信息:', parsedUser);
+        } else {
+          console.log('本地存储中没有用户信息');
         }
         
         // 同时执行实际请求和超时检查
+        console.log('向Supabase请求当前用户信息...');
         const result = await Promise.race([
           supabase.auth.getUser(),
           timeoutPromise
         ])
         
         const user = result.data?.user
+        console.log('当前用户信息获取结果:', user ? '已登录' : '未登录');
         setUser(user)
         
         // 如果用户已登录，获取用户资料
         if (user) {
+          console.log('用户已登录，开始获取用户资料...');
           try {
             const profileResult = await Promise.race([
               supabase.from('profiles').select('*').eq('id', user.id).single(),
               new Promise((_, reject) => setTimeout(() => reject(new Error('获取用户资料超时')), 2000))
             ])
+            console.log('✓ 用户资料获取成功:', profileResult.data);
             setUserProfile(profileResult.data)
           } catch (profileError) {
-            console.warn('获取用户资料超时，使用本地存储或默认值')
+            console.error('✗ 获取用户资料超时或失败:', profileError);
+            console.warn('尝试从本地存储获取用户资料...');
             // 尝试从本地存储获取用户资料
             const storedProfile = localStorage.getItem('supabase.auth.profile')
             if (storedProfile) {
-              setUserProfile(JSON.parse(storedProfile))
+              const parsedProfile = JSON.parse(storedProfile);
+              setUserProfile(parsedProfile);
+              console.log('✓ 从本地存储恢复用户资料:', parsedProfile);
             } else {
-              console.warn('本地存储中也没有用户资料')
+              console.warn('本地存储中也没有用户资料');
             }
           }
         } else {
           setUserProfile(null)
+          console.log('用户未登录，清空用户资料');
         }
       } catch (error) {
-        console.error('与Supabase服务器通信失败:', error)
+        console.error('✗ 与Supabase服务器通信失败:', error);
         setError('与服务器通信超时。请检查网络连接或稍后再试。')
         
         // 确保user和userProfile至少为null
@@ -71,6 +87,7 @@ function App() {
       } finally {
         // 无论如何都要设置loading为false，确保页面能显示
         setLoading(false)
+        console.log('用户检查流程完成，加载状态已更新');
       }
     }
 
@@ -78,36 +95,46 @@ function App() {
 
     // 监听认证状态变化
     try {
-      const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('设置Supabase认证状态监听...');
+      const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('🔄 认证状态变化:', event, session);
         const loggedInUser = session?.user || null
         setUser(loggedInUser)
         
         // 如果用户已登录，获取用户资料
         if (loggedInUser) {
+          console.log('用户已登录，更新用户信息并获取资料...');
           try {
             const { data: profile } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', loggedInUser.id)
               .single()
+            console.log('✓ 用户资料获取成功:', profile);
             setUserProfile(profile)
             // 存储用户资料到本地存储
             localStorage.setItem('supabase.auth.profile', JSON.stringify(profile))
+            console.log('✓ 用户资料已保存到本地存储');
           } catch (profileError) {
-            console.error('获取用户资料失败:', profileError)
+            console.error('✗ 获取用户资料失败:', profileError)
             setUserProfile(null)
           }
           localStorage.setItem('supabase.auth.user', JSON.stringify(loggedInUser))
+          console.log('✓ 用户信息已保存到本地存储');
         } else {
           setUserProfile(null)
           localStorage.removeItem('supabase.auth.user')
           localStorage.removeItem('supabase.auth.profile')
+          console.log('✓ 用户已登出，本地存储已清除');
         }
       })
 
-      return () => authListener.subscription.unsubscribe()
+      return () => {
+        authListener.subscription.unsubscribe();
+        console.log('✓ Supabase认证状态监听已清理');
+      }
     } catch (listenerError) {
-      console.error('设置认证状态监听器失败:', listenerError)
+      console.error('✗ 设置认证状态监听器失败:', listenerError)
       // 如果监听器设置失败，仍然继续应用程序
     }
   }, [])

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>应用诊断页面</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>应用诊断页面</h1>
+        
+        <div class="section">
+            <h2>基本信息</h2>
+            <p>当前URL: <span id="current-url"></span></p>
+            <p>浏览器: <span id="browser-info"></span></p>
+        </div>
+        
+        <div class="section">
+            <h2>资源加载测试</h2>
+            <button onclick="testResourceLoading()">测试资源加载</button>
+            <div id="resource-result"></div>
+        </div>
+        
+        <div class="section">
+            <h2>本地存储测试</h2>
+            <button onclick="testLocalStorage()">测试本地存储</button>
+            <div id="localstorage-result"></div>
+        </div>
+        
+        <div class="section">
+            <h2>网络连接测试</h2>
+            <button onclick="testNetwork()">测试网络连接</button>
+            <div id="network-result"></div>
+        </div>
+        
+        <div class="section">
+            <h2>控制台日志</h2>
+            <p>请按F12打开浏览器控制台查看详细日志</p>
+        </div>
+    </div>
+    
+    <script>
+        // 基本信息
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('browser-info').textContent = navigator.userAgent;
+        
+        // 资源加载测试
+        function testResourceLoading() {
+            const resultDiv = document.getElementById('resource-result');
+            resultDiv.innerHTML = '<p class="info">正在测试资源加载...</p>';
+            
+            // 尝试加载CSS文件
+            const cssLink = document.createElement('link');
+            cssLink.rel = 'stylesheet';
+            cssLink.href = './assets/index-DYVqbtCq.css';
+            cssLink.onload = () => {
+                resultDiv.innerHTML += '<p class="success">CSS文件加载成功</p>';
+            };
+            cssLink.onerror = (e) => {
+                resultDiv.innerHTML += `<p class="error">CSS文件加载失败: ${e.message}</p>`;
+            };
+            document.head.appendChild(cssLink);
+            
+            // 尝试加载JS文件
+            const jsScript = document.createElement('script');
+            jsScript.src = './assets/index-vFYazqZR.js';
+            jsScript.onload = () => {
+                resultDiv.innerHTML += '<p class="success">JS文件加载成功</p>';
+            };
+            jsScript.onerror = (e) => {
+                resultDiv.innerHTML += `<p class="error">JS文件加载失败: ${e.message}</p>`;
+            };
+            document.body.appendChild(jsScript);
+        }
+        
+        // 本地存储测试
+        function testLocalStorage() {
+            const resultDiv = document.getElementById('localstorage-result');
+            try {
+                localStorage.setItem('test', 'value');
+                const value = localStorage.getItem('test');
+                localStorage.removeItem('test');
+                resultDiv.innerHTML = `<p class="success">本地存储测试成功: ${value}</p>`;
+            } catch (e) {
+                resultDiv.innerHTML = `<p class="error">本地存储测试失败: ${e.message}</p>`;
+            }
+        }
+        
+        // 网络连接测试
+        function testNetwork() {
+            const resultDiv = document.getElementById('network-result');
+            resultDiv.innerHTML = '<p class="info">正在测试网络连接...</p>';
+            
+            // 测试Supabase连接
+            fetch('https://klgiatuvsyfmcmjwerac.supabase.co/rest/v1/profiles?select=*', {
+                method: 'GET',
+                headers: {
+                    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsZ2lhdHV2c3lmbWNtandlcmFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MjY5MzksImV4cCI6MjA4MTAwMjkzOX0.MMM6eppK0wLWghUaeMhOsjb9btA5onfT3ju6Y8UFDsw',
+                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsZ2lhdHV2c3lmbWNtandlcmFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MjY5MzksImV4cCI6MjA4MTAwMjkzOX0.MMM6eppK0wLWghUaeMhOsjb9btA5onfT3ju6Y8UFDsw'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error(`HTTP错误! 状态: ${response.status}`);
+                }
+            })
+            .then(data => {
+                resultDiv.innerHTML += '<p class="success">Supabase连接测试成功</p>';
+            })
+            .catch(error => {
+                resultDiv.innerHTML += `<p class="error">Supabase连接测试失败: ${error.message}</p>`;
+            });
+        }
+        
+        // 自动执行基本测试
+        window.onload = function() {
+            console.log('诊断页面加载完成');
+            console.log('当前URL:', window.location.href);
+            console.log('浏览器:', navigator.userAgent);
+            console.log('文档就绪状态:', document.readyState);
+        };
+    </script>
+</body>
+</html>
