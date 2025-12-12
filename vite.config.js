@@ -28,7 +28,7 @@ export default defineConfig({
       }
     },
     // 增加chunk大小警告阈值
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 1200,
     // 启用gzip压缩
     assetsDir: 'assets',
     // 启用CSS代码分割
