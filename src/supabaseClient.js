@@ -16,6 +16,17 @@ export const supabase = createClient(
       headers: {
         'Content-Type': 'application/json',
         'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsZ2lhdHV2c3lmbWNtandlcmFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MjY5MzksImV4cCI6MjA4MTAwMjkzOX0.MMM6eppK0wLWghUaeMhOsjb9btA5onfT3ju6Y8UFDsw'
+      },
+      fetch: (url, options = {}) => {
+        // 增加全局超时设置
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 12000) // 12秒超时
+        
+        return fetch(url, {
+          ...options,
+          signal: controller.signal
+        })
+        .finally(() => clearTimeout(timeoutId))
       }
     }
   }

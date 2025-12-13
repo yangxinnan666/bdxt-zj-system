@@ -20,19 +20,17 @@ function App() {
     // 检查用户登录状态
     const checkUser = async () => {
       console.log('开始检查用户登录状态...');
-      // 设置更合理的超时时间，8秒后超时
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('与服务器通信超时')), 8000)
-      })
       
       try {
         setError(null)
         
-        // 尝试从本地存储先获取用户信息，提高加载速度
+        // 首先从本地存储获取用户信息，确保应用能快速加载
         console.log('检查本地存储中的用户信息...');
-        const storedUser = localStorage.getItem('supabase.auth.user')
+        const storedUser = localStorage.getItem('supabase.auth.user');
+        const storedProfile = localStorage.getItem('supabase.auth.profile');
         let currentUser = null;
         
+        // 使用本地存储初始化状态
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
@@ -42,66 +40,74 @@ function App() {
           console.log('本地存储中没有用户信息');
         }
         
-        // 同时执行实际请求和超时检查
-        console.log('向Supabase请求当前用户信息...');
-        let supabaseUser;
+        if (storedProfile && currentUser) {
+          const parsedProfile = JSON.parse(storedProfile);
+          setUserProfile(parsedProfile);
+          console.log('✓ 从本地存储恢复用户资料:', parsedProfile);
+        } else {
+          console.log('本地存储中没有用户资料或用户未登录');
+        }
+        
+        // 然后异步尝试从Supabase更新用户信息，不影响应用初始加载
+        console.log('异步向Supabase请求更新用户信息...');
         try {
+          // 设置超时Promise
+          const getUserTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('获取用户信息超时')), 10000)
+          });
+          
           const result = await Promise.race([
             supabase.auth.getUser(),
-            timeoutPromise
-          ])
+            getUserTimeout
+          ]);
           
-          supabaseUser = result.data?.user
-          console.log('当前用户信息获取结果:', supabaseUser ? '已登录' : '未登录');
-          setUser(supabaseUser)
-          currentUser = supabaseUser;
-        } catch (getUserError) {
-          console.error('获取用户信息失败:', getUserError);
-          // 如果是无效刷新令牌错误，清除本地存储并重新加载页面
-          if (getUserError.message.includes('invalid refresh token')) {
-            console.warn('检测到无效刷新令牌，清除本地存储并重新加载页面...');
-            localStorage.removeItem('supabase.auth.user');
-            localStorage.removeItem('supabase.auth.profile');
-            window.location.reload();
-            return;
-          }
-          // 这里不再抛出错误，而是继续使用本地存储的用户信息
-        }
-        
-        // 如果用户已登录，获取用户资料
-        if (currentUser) {
-          console.log('用户已登录，开始获取用户资料...');
-          try {
-            const profileResult = await Promise.race([
-              supabase.from('profiles').select('*').eq('id', currentUser.id).single(),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('获取用户资料超时')), 5000))
-            ])
-            console.log('✓ 用户资料获取成功:', profileResult.data);
-            setUserProfile(profileResult.data)
-          } catch (profileError) {
-            console.error('✗ 获取用户资料超时或失败:', profileError);
-            console.warn('尝试从本地存储获取用户资料...');
-            // 尝试从本地存储获取用户资料
-            const storedProfile = localStorage.getItem('supabase.auth.profile')
-            if (storedProfile) {
-              const parsedProfile = JSON.parse(storedProfile);
-              setUserProfile(parsedProfile);
-              console.log('✓ 从本地存储恢复用户资料:', parsedProfile);
-            } else {
-              console.warn('本地存储中也没有用户资料');
+          const supabaseUser = result.data?.user;
+          console.log('Supabase用户信息获取结果:', supabaseUser ? '已登录' : '未登录');
+          
+          if (supabaseUser) {
+            // 如果Supabase返回了用户信息，更新状态和本地存储
+            setUser(supabaseUser);
+            localStorage.setItem('supabase.auth.user', JSON.stringify(supabaseUser));
+            console.log('✓ 已更新用户信息');
+            
+            // 异步获取用户资料
+            try {
+              const profileTimeout = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('获取用户资料超时')), 8000)
+              });
+              
+              const profileResult = await Promise.race([
+                supabase.from('profiles').select('*').eq('id', supabaseUser.id).single(),
+                profileTimeout
+              ]);
+              
+              if (profileResult.data) {
+                setUserProfile(profileResult.data);
+                localStorage.setItem('supabase.auth.profile', JSON.stringify(profileResult.data));
+                console.log('✓ 已更新用户资料');
+              }
+            } catch (profileError) {
+              console.warn('⚠ 异步获取用户资料超时:', profileError);
+              // 超时不影响应用，继续使用本地存储的资料
+            }
+          } else {
+            // 如果Supabase返回未登录，但本地有登录信息，清除本地信息
+            if (currentUser) {
+              console.warn('⚠ Supabase显示未登录，清除本地存储');
+              setUser(null);
+              setUserProfile(null);
+              localStorage.removeItem('supabase.auth.user');
+              localStorage.removeItem('supabase.auth.profile');
             }
           }
-        } else {
-          setUserProfile(null)
-          console.log('用户未登录，清空用户资料');
+        } catch (getUserError) {
+          console.warn('⚠ 异步获取Supabase用户信息失败:', getUserError);
+          // 只记录警告，不影响应用运行
         }
-      } catch (error) {
-        console.error('✗ 与Supabase服务器通信失败:', error);
-        setError('与服务器通信超时。请检查网络连接或稍后再试。')
         
-        // 确保user和userProfile至少为null
-        if (user === undefined) setUser(null)
-        if (userProfile === undefined) setUserProfile(null)
+      } catch (error) {
+        console.error('✗ 与Supabase服务器通信发生严重错误:', error);
+        // 只记录错误，不设置error状态，让应用继续运行
       } finally {
         // 无论如何都要设置loading为false，确保页面能显示
         setLoading(false)
