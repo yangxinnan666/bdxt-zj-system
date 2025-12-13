@@ -20,9 +20,9 @@ function App() {
     // 检查用户登录状态
     const checkUser = async () => {
       console.log('开始检查用户登录状态...');
-      // 设置更短的超时时间，3秒后超时
+      // 设置更合理的超时时间，8秒后超时
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('与服务器通信超时')), 3000)
+        setTimeout(() => reject(new Error('与服务器通信超时')), 8000)
       })
       
       try {
@@ -41,14 +41,28 @@ function App() {
         
         // 同时执行实际请求和超时检查
         console.log('向Supabase请求当前用户信息...');
-        const result = await Promise.race([
-          supabase.auth.getUser(),
-          timeoutPromise
-        ])
-        
-        const user = result.data?.user
-        console.log('当前用户信息获取结果:', user ? '已登录' : '未登录');
-        setUser(user)
+        let result;
+        try {
+          result = await Promise.race([
+            supabase.auth.getUser(),
+            timeoutPromise
+          ])
+          
+          const user = result.data?.user
+          console.log('当前用户信息获取结果:', user ? '已登录' : '未登录');
+          setUser(user)
+        } catch (getUserError) {
+          console.error('获取用户信息失败:', getUserError);
+          // 如果是无效刷新令牌错误，清除本地存储并重新加载页面
+          if (getUserError.message.includes('invalid refresh token')) {
+            console.warn('检测到无效刷新令牌，清除本地存储并重新加载页面...');
+            localStorage.removeItem('supabase.auth.user');
+            localStorage.removeItem('supabase.auth.profile');
+            window.location.reload();
+            return;
+          }
+          throw getUserError;
+        }
         
         // 如果用户已登录，获取用户资料
         if (user) {
@@ -56,7 +70,7 @@ function App() {
           try {
             const profileResult = await Promise.race([
               supabase.from('profiles').select('*').eq('id', user.id).single(),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('获取用户资料超时')), 2000))
+              new Promise((_, reject) => setTimeout(() => reject(new Error('获取用户资料超时')), 5000))
             ])
             console.log('✓ 用户资料获取成功:', profileResult.data);
             setUserProfile(profileResult.data)
