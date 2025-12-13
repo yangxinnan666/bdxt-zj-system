@@ -31,9 +31,12 @@ function App() {
         // 尝试从本地存储先获取用户信息，提高加载速度
         console.log('检查本地存储中的用户信息...');
         const storedUser = localStorage.getItem('supabase.auth.user')
+        let currentUser = null;
+        
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
+          currentUser = parsedUser;
           console.log('✓ 从本地存储恢复用户信息:', parsedUser);
         } else {
           console.log('本地存储中没有用户信息');
@@ -41,16 +44,17 @@ function App() {
         
         // 同时执行实际请求和超时检查
         console.log('向Supabase请求当前用户信息...');
-        let result;
+        let supabaseUser;
         try {
-          result = await Promise.race([
+          const result = await Promise.race([
             supabase.auth.getUser(),
             timeoutPromise
           ])
           
-          const user = result.data?.user
-          console.log('当前用户信息获取结果:', user ? '已登录' : '未登录');
-          setUser(user)
+          supabaseUser = result.data?.user
+          console.log('当前用户信息获取结果:', supabaseUser ? '已登录' : '未登录');
+          setUser(supabaseUser)
+          currentUser = supabaseUser;
         } catch (getUserError) {
           console.error('获取用户信息失败:', getUserError);
           // 如果是无效刷新令牌错误，清除本地存储并重新加载页面
@@ -61,15 +65,15 @@ function App() {
             window.location.reload();
             return;
           }
-          throw getUserError;
+          // 这里不再抛出错误，而是继续使用本地存储的用户信息
         }
         
         // 如果用户已登录，获取用户资料
-        if (user) {
+        if (currentUser) {
           console.log('用户已登录，开始获取用户资料...');
           try {
             const profileResult = await Promise.race([
-              supabase.from('profiles').select('*').eq('id', user.id).single(),
+              supabase.from('profiles').select('*').eq('id', currentUser.id).single(),
               new Promise((_, reject) => setTimeout(() => reject(new Error('获取用户资料超时')), 5000))
             ])
             console.log('✓ 用户资料获取成功:', profileResult.data);
