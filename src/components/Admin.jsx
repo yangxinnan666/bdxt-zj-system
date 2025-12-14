@@ -47,33 +47,11 @@ function Admin({ user }) {
       console.log('从profiles表获取到的用户数据:', profiles);
       console.log('获取到的用户数量:', profiles?.length || 0);
       
-      // 获取所有角色信息
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('roles')
-        .select('user_id, role');
-
-      if (rolesError) {
-        console.error('获取角色列表出错:', rolesError);
-        // 如果获取角色失败，使用默认角色
-        const usersWithDefaultRole = profiles.map(profile => ({
-          ...profile,
-          user_type: 'user'
-        }));
-        console.log('使用默认角色的用户数据:', usersWithDefaultRole);
-        setUsers(usersWithDefaultRole);
-        return;
-      }
-
-      console.log('从roles表获取到的角色数据:', rolesData);
-      
-      // 将角色信息合并到用户资料中
-      const usersWithRoles = profiles.map(profile => {
-        const userRole = rolesData.find(role => role.user_id === profile.id);
-        return {
-          ...profile,
-          user_type: userRole ? userRole.role : 'user'
-        };
-      });
+      // 直接使用profiles表中的user_type字段作为用户角色
+      const usersWithRoles = profiles.map(profile => ({
+        ...profile,
+        user_type: profile.user_type || 'user'
+      }));
 
       console.log('获取到带角色的用户数据:', usersWithRoles);
       console.log('最终显示的用户数量:', usersWithRoles.length);
@@ -220,18 +198,11 @@ function Admin({ user }) {
     try {
       const newRole = currentRole === 'admin' ? 'user' : 'admin';
       const { error } = await supabase
-        .from('roles')
-        .update({ role: newRole })
-        .eq('user_id', userId);
+        .from('profiles')
+        .update({ user_type: newRole })
+        .eq('id', userId);
 
-      if (error) {
-        // 如果更新失败，尝试插入新角色记录
-        const { error: insertError } = await supabase
-          .from('roles')
-          .insert({ user_id: userId, role: newRole });
-        
-        if (insertError) throw insertError;
-      }
+      if (error) throw error;
       
       fetchUsers(); // 重新加载用户列表
     } catch (error) {
@@ -283,12 +254,11 @@ function Admin({ user }) {
   // 删除用户
   const deleteUser = async (userId) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId);
+      // 使用Supabase的auth API删除用户
+      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
 
-      if (error) throw error;
+      if (authError) throw authError;
+      
       fetchUsers(); // 重新加载用户列表
     } catch (error) {
       logger.error('删除用户失败', {
