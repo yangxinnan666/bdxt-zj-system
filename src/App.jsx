@@ -51,9 +51,9 @@ function App() {
         // 然后异步尝试从Supabase更新用户信息，不影响应用初始加载
         console.log('异步向Supabase请求更新用户信息...');
         try {
-          // 设置超时Promise，增加超时时间到20秒
+          // 设置超时Promise，增加超时时间到30秒
           const getUserTimeout = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('获取用户信息超时')), 20000)
+            setTimeout(() => reject(new Error('获取用户信息超时')), 30000)
           });
           
           const result = await Promise.race([
@@ -72,9 +72,9 @@ function App() {
             
             // 异步获取用户资料
             try {
-              // 统一超时时间到20秒
+              // 统一超时时间到30秒
               const profileTimeout = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('获取用户资料超时')), 20000)
+                setTimeout(() => reject(new Error('获取用户资料超时')), 30000)
               });
               
               const profileResult = await Promise.race([
@@ -131,19 +131,25 @@ function App() {
         if (loggedInUser) {
           console.log('用户已登录，更新用户信息并获取资料...');
           try {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', loggedInUser.id)
-              .single()
+            // 为用户资料获取添加超时处理
+            const profileTimeout = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('获取用户资料超时')), 30000)
+            });
+            
+            const profileResult = await Promise.race([
+              supabase.from('profiles').select('*').eq('id', loggedInUser.id).single(),
+              profileTimeout
+            ]);
+            
+            const profile = profileResult.data;
             console.log('✓ 用户资料获取成功:', profile);
             setUserProfile(profile)
             // 存储用户资料到本地存储
             localStorage.setItem('supabase.auth.profile', JSON.stringify(profile))
             console.log('✓ 用户资料已保存到本地存储');
           } catch (profileError) {
-            console.error('✗ 获取用户资料失败:', profileError)
-            setUserProfile(null)
+            console.warn('⚠ 获取用户资料超时，继续使用本地存储的数据:', profileError);
+            // 不设置UserProfile为null，继续使用现有的数据
           }
           localStorage.setItem('supabase.auth.user', JSON.stringify(loggedInUser))
           console.log('✓ 用户信息已保存到本地存储');

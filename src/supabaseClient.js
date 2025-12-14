@@ -18,9 +18,9 @@ export const supabase = createClient(
         'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtsZ2lhdHV2c3lmbWNtandlcmFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0MjY5MzksImV4cCI6MjA4MTAwMjkzOX0.MMM6eppK0wLWghUaeMhOsjb9btA5onfT3ju6Y8UFDsw'
       },
       fetch: (url, options = {}) => {
-        // 增加全局超时设置，统一超时时间到20秒
+        // 增加全局超时设置，统一超时时间到30秒
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 20000) // 20秒超时
+        const timeoutId = setTimeout(() => controller.abort(), 30000) // 30秒超时
         
         return fetch(url, {
           ...options,
