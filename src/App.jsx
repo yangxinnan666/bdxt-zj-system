@@ -51,9 +51,9 @@ function App() {
         // 然后异步尝试从Supabase更新用户信息，不影响应用初始加载
         console.log('异步向Supabase请求更新用户信息...');
         try {
-          // 设置超时Promise
+          // 设置超时Promise，增加超时时间到20秒
           const getUserTimeout = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('获取用户信息超时')), 10000)
+            setTimeout(() => reject(new Error('获取用户信息超时')), 20000)
           });
           
           const result = await Promise.race([
@@ -72,8 +72,9 @@ function App() {
             
             // 异步获取用户资料
             try {
+              // 统一超时时间到20秒
               const profileTimeout = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('获取用户资料超时')), 8000)
+                setTimeout(() => reject(new Error('获取用户资料超时')), 20000)
               });
               
               const profileResult = await Promise.race([
@@ -102,7 +103,8 @@ function App() {
           }
         } catch (getUserError) {
           console.warn('⚠ 异步获取Supabase用户信息失败:', getUserError);
-          // 只记录警告，不影响应用运行
+          // 这里不抛出错误，因为我们已经有本地存储的数据可用
+          // 记录错误但不影响用户体验
         }
         
       } catch (error) {
