@@ -368,7 +368,7 @@ function Order({ user }) {
                 <h4 className="mb-0">添加报单</h4>
               </div>
               {error && (
-                <div className="alert alert-danger" role="alert">
+                <div className="alert alert-primary" role="alert">
                   {error}
                 </div>
               )}
@@ -534,7 +534,7 @@ function Order({ user }) {
                           )}
                           <td>
                             <button
-                              className="btn btn-danger btn-sm"
+                              className="btn btn-primary btn-sm"
                               onClick={() => handleDelete(order.id, order.user_id)}
                               title="删除"
                             >

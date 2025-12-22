@@ -126,13 +126,14 @@ function Login() {
   }
 
   return (
-    <div className="login-container mt-5">
-      <div className="row justify-content-center">
-        <div className="col-md-6 col-lg-4">
-          <div className="form-container login-card shadow-sm">
-            <div className="text-center mb-4">
+    <div className="login-container">
+      <div className="login-wrapper">
+        {/* 左侧登录表单 */}
+        <div className="login-left">
+          <div className="login-content">
+            <div className="login-header text-center mb-5">
               <div className="login-icon mb-3">
-                <i className="bi bi-shield-lock fs-1 text-primary"></i>
+                <i className="bi bi-shield-lock fs-1"></i>
               </div>
               <h2 className="card-title mb-1">
                 {isLogin ? '登录' : '注册'}
@@ -151,9 +152,9 @@ function Login() {
 
             <form onSubmit={handleAuth} className="login-form">
               {!isLogin && (
-                <div className="mb-3">
+                <div className="form-group">
                   <label htmlFor="username" className="form-label">
-                    <i className="bi bi-person me-2"></i>用户名
+                    用户名
                   </label>
                   <div className="input-group">
                     <span className="input-group-text">
@@ -172,9 +173,9 @@ function Login() {
                 </div>
               )}
 
-              <div className="mb-3">
+              <div className="form-group">
                 <label htmlFor="email" className="form-label">
-                  <i className="bi bi-envelope me-2"></i>邮箱
+                  邮箱
                 </label>
                 <div className="input-group">
                   <span className="input-group-text">
@@ -192,9 +193,9 @@ function Login() {
                 </div>
               </div>
 
-              <div className="mb-4">
+              <div className="form-group">
                 <label htmlFor="password" className="form-label">
-                  <i className="bi bi-lock me-2"></i>密码
+                  密码
                 </label>
                 <div className="input-group">
                   <span className="input-group-text">
@@ -214,7 +215,7 @@ function Login() {
 
               <button
                 type="submit"
-                className="btn btn-primary btn-lg w-100 mb-3"
+                className="btn login-btn w-100"
                 disabled={loading}
               >
                 {loading ? (
@@ -223,29 +224,41 @@ function Login() {
                   </span>
                 ) : (
                   <span>
-                    {isLogin ? (
-                      <i className="bi bi-box-arrow-in-right me-2"></i>
-                    ) : (
-                      <i className="bi bi-person-plus me-2"></i>
-                    )}
                     {isLogin ? '登录' : '注册'}
                   </span>
                 )}
               </button>
-            </form>
 
-            <div className="text-center mt-4">
-              <p className="text-muted mb-0">
-                {isLogin ? '没有账号？' : '已有账号？'}
-                <button
-                  className="btn btn-link ms-1"
-                  onClick={() => setIsLogin(!isLogin)}
-                  disabled={loading}
-                >
-                  {isLogin ? '点击注册' : '点击登录'}
-                </button>
-              </p>
-            </div>
+              <div className="text-center mt-4">
+                <p className="text-muted mb-0">
+                  {isLogin ? '没有账号？' : '已有账号？'}
+                  <button
+                    className="btn btn-link ms-1"
+                    onClick={() => setIsLogin(!isLogin)}
+                    disabled={loading}
+                  >
+                    {isLogin ? '点击注册' : '点击登录'}
+                  </button>
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
+        
+        {/* 右侧注册提示 */}
+        <div className="login-right">
+          <div className="login-right-content text-center">
+            <h3 className="login-right-title">{isLogin ? '没有账号？' : '已有账号？'}</h3>
+            <p className="login-right-desc">
+              {isLogin ? '立即注册账号，享受我们的所有服务' : '登录您的账号，继续您的体验'}
+            </p>
+            <button
+              className="btn login-toggle-btn"
+              onClick={() => setIsLogin(!isLogin)}
+              disabled={loading}
+            >
+              {isLogin ? '注册' : '登录'}
+            </button>
           </div>
         </div>
       </div>

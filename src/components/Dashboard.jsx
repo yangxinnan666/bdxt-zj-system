@@ -47,11 +47,13 @@ function Dashboard({ user }) {
           setProfile(defaultProfile);
           // 保存到本地存储
           localStorage.setItem('bdxt.profile', JSON.stringify(defaultProfile));
+          localStorage.setItem('supabase.auth.profile', JSON.stringify(defaultProfile));
         } else {
           console.log('创建默认用户资料成功:', data);
           setProfile(data);
           // 保存到本地存储
           localStorage.setItem('bdxt.profile', JSON.stringify(data));
+          localStorage.setItem('supabase.auth.profile', JSON.stringify(data));
         }
       } catch (createError) {
         console.error('创建默认用户资料时出错:', createError);
@@ -94,56 +96,47 @@ function Dashboard({ user }) {
           }
           
           // 处理查询结果
+          let profileData;
           if (Array.isArray(data)) {
             if (data.length === 0) {
               console.log('未找到用户资料，创建默认资料');
               await createDefaultProfile();
               return;
-            } else if (data.length === 1) {
-              console.log('获取用户资料成功');
-              setProfile(data[0]);
             } else {
-              console.warn('找到多条用户资料记录，使用第一条');
-              setProfile(data[0]);
+              profileData = data[0];
             }
           } else if (data) {
-            // 结果已经是单个对象
-            console.log('获取用户资料成功');
-            setProfile(data);
+            profileData = data;
           } else {
             console.log('未找到用户资料，创建默认资料');
             await createDefaultProfile();
             return;
           }
           
-          // 获取用户角色
-          try {
-            const { data: roleData, error: roleError } = await supabase
-              .from('roles')
-              .select('role')
-              .eq('user_id', user.id)
-              .single();
-            
-            if (roleError) {
-              console.error('获取用户角色失败:', roleError);
-            } else if (roleData) {
-              console.log('获取用户角色成功:', roleData.role);
-              // 更新profile添加角色信息
-              const profileWithRole = { ...data, user_type: roleData.role };
-              setProfile(profileWithRole);
-              // 更新本地存储
-              localStorage.setItem('bdxt.profile', JSON.stringify(profileWithRole));
-            }
-          } catch (roleFetchError) {
-            logger.error('获取用户角色出错', roleFetchError);
-          }
+          // 确保用户资料中有user_type字段
+          const profileWithType = {
+            ...profileData,
+            user_type: profileData.user_type || 'user' // 如果没有user_type字段，默认设为普通用户
+          };
           
-          // 将用户资料保存到本地存储
+          console.log('获取用户资料成功:', profileWithType);
+          setProfile(profileWithType);
+          
+          // 使用与App.jsx一致的本地存储键名，确保数据同步
           try {
-            localStorage.setItem('bdxt.profile', JSON.stringify(data));
+            localStorage.setItem('supabase.auth.profile', JSON.stringify(profileWithType));
+            // 同时兼容旧的存储键名
+            localStorage.setItem('bdxt.profile', JSON.stringify(profileWithType));
           } catch (localError) {
             logger.error('保存用户资料到本地存储失败', localError);
           }
+          
+          // 不再从roles表获取角色信息，直接使用profiles表中的user_type字段
+          console.log('使用profiles表中的user_type字段:', profileWithType.user_type);
+          setProfile(profileWithType);
+          // 更新本地存储
+          localStorage.setItem('supabase.auth.profile', JSON.stringify(profileWithType));
+          localStorage.setItem('bdxt.profile', JSON.stringify(profileWithType));
         } catch (fetchError) {
           clearTimeout(timeoutId);
           if (fetchError.name === 'AbortError') {
@@ -163,7 +156,8 @@ function Dashboard({ user }) {
         if (error?.name === 'TypeError' && error?.message === 'Failed to fetch') {
           console.log('尝试从本地存储读取用户资料...');
           try {
-            const savedProfile = localStorage.getItem('bdxt.profile');
+            // 首先尝试从与App.jsx一致的存储键读取
+            const savedProfile = localStorage.getItem('supabase.auth.profile') || localStorage.getItem('bdxt.profile');
             if (savedProfile) {
               const parsedProfile = JSON.parse(savedProfile);
               setProfile(parsedProfile);
@@ -461,218 +455,245 @@ function Dashboard({ user }) {
   }
 
   return (
-    <div className="container mt-5 dashboard-container">
-      <div className="row">
-        {/* 侧边导航 */}
-        <div className="col-md-3 mb-4">
-          <div className="card dashboard-card shadow-sm">
-            <div className="card-body dashboard-profile">
-              <div className="text-center mb-4">
-                <div className="profile-icon mb-3">
-                  <i className="bi bi-person-circle fs-1"></i>
-                </div>
-                <h5 className="card-title mb-1">欢迎回来</h5>
-                <p className="card-text text-muted mb-0">{profile?.email}</p>
-                <div className="mt-2">
-                  <span className={`badge ${profile?.user_type === 'admin' ? 'badge-admin' : 'badge-user'}`}>
-                    {profile?.user_type === 'admin' ? '管理员' : '普通用户'}
-                  </span>
-                </div>
-              </div>
-              <hr />
-              <nav className="nav flex-column dashboard-nav">
-                <Link to="/dashboard" className="nav-link active dashboard-nav-link">
-                  <i className="bi bi-house-door me-2"></i>首页
-                </Link>
-                <Link to="/accounting" className="nav-link dashboard-nav-link">
-                  <i className="bi bi-calculator me-2"></i>对账系统
-                </Link>
-                <Link to="/order" className="nav-link dashboard-nav-link">
-                  <i className="bi bi-file-earmark-text me-2"></i>报单系统
-                </Link>
-                {profile?.user_type === 'admin' && (
-                  <Link to="/admin" className="nav-link dashboard-nav-link">
-                    <i className="bi bi-gear me-2"></i>管理中心
-                  </Link>
-                )}
-                <button onClick={handleLogout} className="nav-link btn btn-link text-danger dashboard-nav-link">
-                  <i className="bi bi-box-arrow-right me-2"></i>退出登录
-                </button>
-              </nav>
-            </div>
+    <div className="dashboard-container">
+      {/* 侧边导航 */}
+      <nav className="dashboard-sidebar">
+        <div className="sidebar-header">
+          <div className="logo">
+            <i className="bi bi-clipboard-data fs-2"></i>
+            <span className="logo-text">对账系统</span>
           </div>
         </div>
-
-        {/* 主内容 */}
-        <div className="col-md-9">
-          <div className="card mb-4 dashboard-card shadow-sm">
-            <div className="card-body">
-              <h3 className="card-title dashboard-header">系统概览</h3>
-              <p className="card-text text-muted">欢迎使用对账与报单系统</p>
-              
-              {/* 统计卡片 */}
-              <div className="row mt-4">
-                <div className="col-md-4 mb-4">
-                  <div className="card bg-primary text-white shadow-sm h-100">
-                    <div className="card-body">
-                      <div className="d-flex align-items-center justify-content-between">
-                        <div>
-                          <h6 className="card-subtitle mb-1 text-light">总收入</h6>
-                          <p className="card-text display-4">¥{accountingStats.income.toFixed(2)}</p>
-                        </div>
-                        <i className="bi bi-arrow-up-circle fs-1 opacity-75"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-4 mb-4">
-                  <div className="card bg-danger text-white shadow-sm h-100">
-                    <div className="card-body">
-                      <div className="d-flex align-items-center justify-content-between">
-                        <div>
-                          <h6 className="card-subtitle mb-1 text-light">总支出</h6>
-                          <p className="card-text display-4">¥{accountingStats.expense.toFixed(2)}</p>
-                        </div>
-                        <i className="bi bi-arrow-down-circle fs-1 opacity-75"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-4 mb-4">
-                  <div className="card bg-success text-white shadow-sm h-100">
-                    <div className="card-body">
-                      <div className="d-flex align-items-center justify-content-between">
-                        <div>
-                          <h6 className="card-subtitle mb-1 text-light">结余</h6>
-                          <p className="card-text display-4">¥{(accountingStats.income - accountingStats.expense).toFixed(2)}</p>
-                        </div>
-                        <i className="bi bi-cash-coin fs-1 opacity-75"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 统计图表 */}
-              <div className="row mt-4">
-                {/* 对账统计图表 */}
-                <div className="col-md-6 mb-4">
-                  <div className="card dashboard-card shadow-sm h-100">
-                    <div className="card-body">
-                      <div className="d-flex align-items-center mb-3">
-                        <i className="bi bi-calculator me-2 text-primary"></i>
-                        <h5 className="card-title mb-0">对账统计</h5>
-                      </div>
-                      <div className="chart-container" style={{ height: '300px' }}>
-                        <Doughnut 
-                          data={{
-                            labels: ['收入', '支出'],
-                            datasets: [{
-                              data: [accountingStats.income, accountingStats.expense],
-                              backgroundColor: ['#0d6efd', '#dc3545'],
-                              borderColor: ['#0d6efd', '#dc3545'],
-                              borderWidth: 1
-                            }]
-                          }}
-                          options={{
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                              legend: {
-                                position: 'bottom'
-                              },
-                              tooltip: {
-                                callbacks: {
-                                  label: function(context) {
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0)
-                                    const percentage = Math.round((context.parsed / total) * 100)
-                                    return `${context.label}: ¥${context.parsed.toFixed(2)} (${percentage}%)`
-                                  }
-                                }
-                              }
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 订单统计图表 */}
-                <div className="col-md-6 mb-4">
-                  <div className="card dashboard-card shadow-sm h-100">
-                    <div className="card-body">
-                      <div className="d-flex align-items-center mb-3">
-                        <i className="bi bi-box me-2 text-primary"></i>
-                        <h5 className="card-title mb-0">订单状态统计</h5>
-                      </div>
-                      <div className="chart-container" style={{ height: '300px' }}>
-                        <Doughnut 
-                          data={{
-                            labels: ['待发货', '已发货', '已签收'],
-                            datasets: [{
-                              data: [orderStats.pending, orderStats.shipped, orderStats.delivered],
-                              backgroundColor: ['#ffc107', '#198754', '#0d6efd'],
-                              borderColor: ['#ffc107', '#198754', '#0d6efd'],
-                              borderWidth: 1
-                            }]
-                          }}
-                          options={{
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                              legend: {
-                                position: 'bottom'
-                              },
-                              tooltip: {
-                                callbacks: {
-                                  label: function(context) {
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0)
-                                    const percentage = Math.round((context.parsed / total) * 100)
-                                    return `${context.label}: ${context.parsed} 个 (${percentage}%)`
-                                  }
-                                }
-                              }
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        
+        <div className="sidebar-profile">
+          <div className="profile-icon">
+            <i className="bi bi-person-circle fs-1"></i>
           </div>
-
-          {/* 公告 */}
-          <div className="card mb-4 dashboard-card shadow-sm">
-            <div className="card-body">
-              <h5 className="card-title dashboard-section-title">
-                <i className="bi bi-bullhorn me-2"></i>最新公告
-              </h5>
-              {announcements.length > 0 ? (
-                <div className="announcement-list">
-                  {announcements.map((announcement) => (
-                    <div key={announcement.id} className="announcement-item p-3 mb-3 rounded border border-light">
-                      <h6 className="announcement-title">{announcement.title}</h6>
-                      <p className="announcement-content mt-1 mb-2">{announcement.content}</p>
-                      <small className="text-muted announcement-date">
-                        <i className="bi bi-clock me-1"></i>
-                        {new Date(announcement.created_at).toLocaleString()}
-                      </small>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center p-4 text-muted">
-                  <i className="bi bi-info-circle fs-3 mb-2"></i>
-                  <p>暂无公告</p>
-                </div>
-              )}
-            </div>
+          <div className="profile-info">
+            <h5 className="profile-name">欢迎回来</h5>
+            <p className="profile-email">{profile?.email}</p>
+            <span className={`profile-role ${profile?.user_type === 'admin' ? 'role-admin' : 'role-user'}`}>
+              {profile?.user_type === 'admin' ? '管理员' : '普通用户'}
+            </span>
           </div>
         </div>
-      </div>
+        
+        <div className="sidebar-nav">
+          <Link to="/dashboard" className="nav-item active">
+            <i className="bi bi-house-door nav-icon"></i>
+            <span className="nav-text">首页</span>
+          </Link>
+          <Link to="/accounting" className="nav-item">
+            <i className="bi bi-calculator nav-icon"></i>
+            <span className="nav-text">对账系统</span>
+          </Link>
+          <Link to="/order" className="nav-item">
+            <i className="bi bi-file-earmark-text nav-icon"></i>
+            <span className="nav-text">报单系统</span>
+          </Link>
+          {profile?.user_type === 'admin' && (
+            <Link to="/admin" className="nav-item">
+              <i className="bi bi-gear nav-icon"></i>
+              <span className="nav-text">管理中心</span>
+            </Link>
+          )}
+          <button onClick={handleLogout} className="nav-item logout">
+            <i className="bi bi-box-arrow-right nav-icon"></i>
+            <span className="nav-text">退出登录</span>
+          </button>
+        </div>
+      </nav>
+      
+      {/* 主内容 */}
+      <main className="dashboard-main">
+        {/* 顶部导航栏 */}
+        <header className="main-header">
+          <div className="header-left">
+            <h1 className="page-title">系统概览</h1>
+            <p className="page-subtitle">欢迎使用对账与报单系统</p>
+          </div>
+          <div className="header-right">
+            <div className="header-actions">
+              <button className="action-btn">
+                <i className="bi bi-bell"></i>
+              </button>
+              <button className="action-btn">
+                <i className="bi bi-question-circle"></i>
+              </button>
+            </div>
+          </div>
+        </header>
+        
+        {/* 统计卡片 */}
+        <section className="stats-section">
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-header">
+                <h3 className="stat-title">总收入</h3>
+                <i className="bi bi-arrow-up-circle stat-icon"></i>
+              </div>
+              <div className="stat-value">¥{accountingStats.income.toFixed(2)}</div>
+              <div className="stat-info">
+                <span className="stat-change positive">+12.5%</span>
+                <span className="stat-period">相比上月</span>
+              </div>
+            </div>
+            
+            <div className="stat-card">
+              <div className="stat-header">
+                <h3 className="stat-title">总支出</h3>
+                <i className="bi bi-arrow-down-circle stat-icon"></i>
+              </div>
+              <div className="stat-value">¥{accountingStats.expense.toFixed(2)}</div>
+              <div className="stat-info">
+                <span className="stat-change negative">-8.3%</span>
+                <span className="stat-period">相比上月</span>
+              </div>
+            </div>
+            
+            <div className="stat-card">
+              <div className="stat-header">
+                <h3 className="stat-title">结余</h3>
+                <i className="bi bi-cash-coin stat-icon"></i>
+              </div>
+              <div className="stat-value">¥{(accountingStats.income - accountingStats.expense).toFixed(2)}</div>
+              <div className="stat-info">
+                <span className="stat-change positive">+15.2%</span>
+                <span className="stat-period">相比上月</span>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        {/* 图表区域 */}
+        <section className="charts-section">
+          <div className="charts-grid">
+            {/* 对账统计图表 */}
+            <div className="chart-card">
+              <div className="chart-header">
+                <div className="chart-title">
+                  <i className="bi bi-calculator chart-icon"></i>
+                  <h3>对账统计</h3>
+                </div>
+                <div className="chart-actions">
+                  <button className="chart-action-btn">本月</button>
+                  <button className="chart-action-btn active">本季</button>
+                  <button className="chart-action-btn">本年</button>
+                </div>
+              </div>
+              <div className="chart-container">
+                <Doughnut 
+                  data={{
+                    labels: ['收入', '支出'],
+                    datasets: [{
+                      data: [accountingStats.income, accountingStats.expense],
+                      backgroundColor: ['#333333', '#999999'],
+                      borderColor: ['#333333', '#999999'],
+                      borderWidth: 1
+                    }]
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: 'bottom'
+                      },
+                      tooltip: {
+                        callbacks: {
+                          label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0)
+                            const percentage = Math.round((context.parsed / total) * 100)
+                            return `${context.label}: ¥${context.parsed.toFixed(2)} (${percentage}%)`
+                          }
+                        }
+                      }
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            
+            {/* 订单统计图表 */}
+            <div className="chart-card">
+              <div className="chart-header">
+                <div className="chart-title">
+                  <i className="bi bi-box chart-icon"></i>
+                  <h3>订单状态统计</h3>
+                </div>
+                <div className="chart-actions">
+                  <button className="chart-action-btn">今日</button>
+                  <button className="chart-action-btn active">本周</button>
+                  <button className="chart-action-btn">本月</button>
+                </div>
+              </div>
+              <div className="chart-container">
+                <Doughnut 
+                  data={{
+                    labels: ['待发货', '已发货', '已签收'],
+                    datasets: [{
+                      data: [orderStats.pending, orderStats.shipped, orderStats.delivered],
+                      backgroundColor: ['#333333', '#666666', '#999999'],
+                      borderColor: ['#333333', '#666666', '#999999'],
+                      borderWidth: 1
+                    }]
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: 'bottom'
+                      },
+                      tooltip: {
+                        callbacks: {
+                          label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0)
+                            const percentage = Math.round((context.parsed / total) * 100)
+                            return `${context.label}: ${context.parsed} 个 (${percentage}%)`
+                          }
+                        }
+                      }
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        {/* 公告区域 */}
+        <section className="announcements-section">
+          <div className="section-header">
+            <h2 className="section-title">
+              <i className="bi bi-bullhorn"></i>
+              最新公告
+            </h2>
+            <button className="section-action">查看全部</button>
+          </div>
+          
+          <div className="announcements-list">
+            {announcements.length > 0 ? (
+              announcements.map((announcement) => (
+                <div key={announcement.id} className="announcement-card">
+                  <div className="announcement-header">
+                    <h3 className="announcement-title">{announcement.title}</h3>
+                    <span className="announcement-date">
+                      {new Date(announcement.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="announcement-content">{announcement.content}</p>
+                </div>
+              ))
+            ) : (
+              <div className="empty-state">
+                <i className="bi bi-info-circle fs-3"></i>
+                <p>暂无公告</p>
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
     </div>
   )
 }

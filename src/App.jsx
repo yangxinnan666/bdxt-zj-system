@@ -83,9 +83,14 @@ function App() {
               ]);
               
               if (profileResult.data) {
-                setUserProfile(profileResult.data);
-                localStorage.setItem('supabase.auth.profile', JSON.stringify(profileResult.data));
-                console.log('✓ 已更新用户资料');
+                // 确保用户资料中有user_type字段
+                const profileData = {
+                  ...profileResult.data,
+                  user_type: profileResult.data.user_type || 'user' // 如果没有user_type字段，默认设为普通用户
+                };
+                setUserProfile(profileData);
+                localStorage.setItem('supabase.auth.profile', JSON.stringify(profileData));
+                console.log('✓ 已更新用户资料:', profileData);
               }
             } catch (profileError) {
               console.warn('⚠ 异步获取用户资料超时:', profileError);
@@ -141,11 +146,16 @@ function App() {
               profileTimeout
             ]);
             
-            const profile = profileResult.data;
-            console.log('✓ 用户资料获取成功:', profile);
-            setUserProfile(profile)
+            const profileData = profileResult.data;
+            // 确保用户资料中有user_type字段
+            const profileWithType = {
+              ...profileData,
+              user_type: profileData.user_type || 'user' // 如果没有user_type字段，默认设为普通用户
+            };
+            console.log('✓ 用户资料获取成功:', profileWithType);
+            setUserProfile(profileWithType)
             // 存储用户资料到本地存储
-            localStorage.setItem('supabase.auth.profile', JSON.stringify(profile))
+            localStorage.setItem('supabase.auth.profile', JSON.stringify(profileWithType))
             console.log('✓ 用户资料已保存到本地存储');
           } catch (profileError) {
             console.warn('⚠ 获取用户资料超时，继续使用本地存储的数据:', profileError);

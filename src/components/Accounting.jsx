@@ -423,10 +423,10 @@ function Accounting({ user }) {
           <div className="card accounting-card shadow-sm">
             <div className="card-body text-center">
               <div className="icon-income mb-3">
-                <i className="bi bi-arrow-up-circle fs-1 text-success"></i>
-              </div>
-              <h5 className="card-title">总收入</h5>
-              <p className="card-text display-4 text-success">¥{totalIncome.toFixed(2)}</p>
+              <i className="bi bi-arrow-up-circle fs-1 text-primary"></i>
+            </div>
+            <h5 className="card-title">总收入</h5>
+            <p className="card-text display-4 text-primary">¥{totalIncome.toFixed(2)}</p>
             </div>
           </div>
         </div>
@@ -434,10 +434,10 @@ function Accounting({ user }) {
           <div className="card accounting-card shadow-sm">
             <div className="card-body text-center">
               <div className="icon-expense mb-3">
-                <i className="bi bi-arrow-down-circle fs-1 text-danger"></i>
-              </div>
-              <h5 className="card-title">总支出</h5>
-              <p className="card-text display-4 text-danger">¥{totalExpense.toFixed(2)}</p>
+              <i className="bi bi-arrow-down-circle fs-1 text-primary"></i>
+            </div>
+            <h5 className="card-title">总支出</h5>
+            <p className="card-text display-4 text-primary">¥{totalExpense.toFixed(2)}</p>
             </div>
           </div>
         </div>
@@ -445,10 +445,10 @@ function Accounting({ user }) {
           <div className="card accounting-card shadow-sm">
             <div className="card-body text-center">
               <div className="icon-balance mb-3">
-                <i className="bi bi-cash-coin fs-1 text-primary"></i>
-              </div>
-              <h5 className="card-title">结余</h5>
-              <p className="card-text display-4 text-primary">¥{(totalIncome - totalExpense).toFixed(2)}</p>
+              <i className="bi bi-cash-coin fs-1 text-primary"></i>
+            </div>
+            <h5 className="card-title">结余</h5>
+            <p className="card-text display-4 text-primary">¥{(totalIncome - totalExpense).toFixed(2)}</p>
             </div>
           </div>
         </div>
@@ -660,10 +660,10 @@ function Accounting({ user }) {
               <h5 className="card-title mb-0">对账记录</h5>
             </div>
             <div>
-              <button className="btn btn-success mr-2" onClick={exportIncomeExcel}>
+              <button className="btn btn-primary mr-2" onClick={exportIncomeExcel}>
                 <i className="bi bi-download me-1"></i>导出收入表格
               </button>
-              <button className="btn btn-danger" onClick={exportExpenseExcel}>
+              <button className="btn btn-primary" onClick={exportExpenseExcel}>
                 <i className="bi bi-download me-1"></i>导出支出表格
               </button>
             </div>
@@ -687,16 +687,16 @@ function Accounting({ user }) {
                   <tr key={record.id} className="table-row">
                     <td>{record.name}</td>
                     <td>{new Date(record.record_time).toLocaleString()}</td>
-                    <td className={`font-weight-medium ${record.type === '收入' ? 'text-success' : 'text-danger'}`}>
+                    <td className={`font-weight-medium ${record.type === '收入' ? 'text-primary' : 'text-primary'}`}>
                       {record.type === '收入' ? '+' : '-'}{record.amount}
                     </td>
                     <td>
-                      <span className={`badge ${record.payment_method === '支付宝' ? 'bg-info' : record.payment_method === '微信' ? 'bg-success' : 'bg-secondary'}`}>
+                      <span className={`badge bg-secondary`}>
                         {record.payment_method}
                       </span>
                     </td>
                     <td>
-                      <span className={`badge ${record.type === '收入' ? 'bg-success' : 'bg-danger'}`}>
+                      <span className={`badge bg-primary`}>
                         {record.type}
                       </span>
                     </td>

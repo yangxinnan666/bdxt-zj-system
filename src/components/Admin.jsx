@@ -494,17 +494,17 @@ function Admin({ user }) {
             </td>
                         <td>
                           <button 
-                            className="btn btn-sm btn-warning me-2"
-                            onClick={() => toggleUserRole(user.id, user.user_type)}
-                          >
-                            <i className="bi bi-arrow-repeat me-1"></i>切换角色
-                          </button>
-                            <button 
-                              className="btn btn-sm btn-danger"
-                              onClick={() => confirmDeleteUser(user)}
+                              className="btn btn-sm btn-primary me-2"
+                              onClick={() => toggleUserRole(user.id, user.user_type)}
                             >
-                              <i className="bi bi-trash me-1"></i>删除
+                              <i className="bi bi-arrow-repeat me-1"></i>切换角色
                             </button>
+                              <button 
+                                className="btn btn-sm btn-primary"
+                                onClick={() => confirmDeleteUser(user)}
+                              >
+                                <i className="bi bi-trash me-1"></i>删除
+                              </button>
                           </td>
                         </tr>
                       ))}
@@ -538,7 +538,7 @@ function Admin({ user }) {
                 {/* 发布公告 */}
                 <div className="mb-4 p-3 bg-light rounded border border-light">
                   <div className="d-flex align-items-center mb-3">
-                    <i className="bi bi-plus-circle-fill text-success me-2"></i>
+                    <i className="bi bi-plus-circle-fill text-primary me-2"></i>
                     <h6 className="mb-0">发布新公告</h6>
                   </div>
                   <form onSubmit={handleSaveAnnouncement}>
@@ -601,7 +601,7 @@ function Admin({ user }) {
                           <td>
 
                             <button 
-                              className="btn btn-sm btn-danger"
+                              className="btn btn-sm btn-primary"
                               onClick={() => confirmDeleteAnnouncement(announcement)}
                             >
                               <i className="bi bi-trash me-1"></i>删除
@@ -638,7 +638,7 @@ function Admin({ user }) {
                   </div>
                   <div>
                     <button 
-                      className="btn btn-sm btn-success"
+                      className="btn btn-sm btn-primary"
                       onClick={() => exportOrdersToExcel()}
                     >
                       <i className="bi bi-file-earmark-excel me-1"></i>导出报单表格
@@ -667,14 +667,14 @@ function Admin({ user }) {
                           <td>{order.tracking_number}</td>
                           <td>{new Date(order.order_time).toLocaleString()}</td>
                           <td>
-                            <span className={`badge ${order.status === '已发货' ? 'bg-success' : 'bg-warning'}`}>
+                            <span className={`badge ${order.status === '已发货' ? 'bg-primary' : 'bg-secondary'}`}>
                               {order.status}
                             </span>
                           </td>
                           <td>{order.profiles?.name || '未知用户'}</td>
                           <td>
                             <button 
-                              className="btn btn-sm btn-danger"
+                              className="btn btn-sm btn-primary"
                               onClick={() => confirmDeleteOrder(order)}
                               title="删除报单"
                             >
@@ -712,13 +712,13 @@ function Admin({ user }) {
                   </div>
                   <div>
                     <button 
-                      className="btn btn-sm btn-success me-2"
+                      className="btn btn-sm btn-primary me-2"
                       onClick={() => exportAccountingToExcel('收入')}
                     >
                       <i className="bi bi-file-earmark-excel me-1"></i>导出收入记录
                     </button>
                     <button 
-                      className="btn btn-sm btn-success"
+                      className="btn btn-sm btn-primary"
                       onClick={() => exportAccountingToExcel('支出')}
                     >
                       <i className="bi bi-file-earmark-excel me-1"></i>导出支出记录
@@ -731,18 +731,18 @@ function Admin({ user }) {
                   <div className="col-md-4">
                     <div className="card p-3 bg-light rounded text-center">
                       <div className="info-box-content">
-                        <i className="bi bi-arrow-up-circle text-success mb-2" style={{ fontSize: '1.5rem' }}></i>
+                        <i className="bi bi-arrow-up-circle text-primary mb-2" style={{ fontSize: '1.5rem' }}></i>
                         <div className="info-box-text text-muted mb-1">总收入</div>
-                        <div className="info-box-number h5 text-success">¥{totalIncome.toFixed(2)}</div>
+                        <div className="info-box-number h5 text-primary">¥{totalIncome.toFixed(2)}</div>
                       </div>
                     </div>
                   </div>
                   <div className="col-md-4">
                     <div className="card p-3 bg-light rounded text-center">
                       <div className="info-box-content">
-                        <i className="bi bi-arrow-down-circle text-danger mb-2" style={{ fontSize: '1.5rem' }}></i>
+                        <i className="bi bi-arrow-down-circle text-primary mb-2" style={{ fontSize: '1.5rem' }}></i>
                         <div className="info-box-text text-muted mb-1">总支出</div>
-                        <div className="info-box-number h5 text-danger">¥{totalExpense.toFixed(2)}</div>
+                        <div className="info-box-number h5 text-primary">¥{totalExpense.toFixed(2)}</div>
                       </div>
                     </div>
                   </div>
@@ -776,16 +776,16 @@ function Admin({ user }) {
                         <tr key={record.id}>
                           <td>{record.name}</td>
                           <td>{new Date(record.record_time).toLocaleString()}</td>
-                          <td className={record.type === '收入' ? 'text-success font-weight-medium' : 'text-danger font-weight-medium'}>
-                            {record.type === '收入' ? '+' : '-'}{record.amount.toFixed(2)}
-                          </td>
+                          <td className={record.type === '收入' ? 'text-primary font-weight-medium' : 'text-primary font-weight-medium'}>
+                      {record.type === '收入' ? '+' : '-'}{record.amount.toFixed(2)}
+                    </td>
                           <td>
-                            <span className={`badge ${record.payment_method === '支付宝' ? 'bg-info' : record.payment_method === '微信' ? 'bg-success' : 'bg-secondary'}`}>
+                            <span className={`badge bg-secondary`}>
                               {record.payment_method}
                             </span>
                           </td>
                           <td>
-                            <span className={`badge ${record.type === '收入' ? 'bg-success' : 'bg-danger'}`}>
+                            <span className={`badge ${record.type === '收入' ? 'bg-primary' : 'bg-secondary'}`}>
                               {record.type}
                             </span>
                           </td>
@@ -793,7 +793,7 @@ function Admin({ user }) {
                           <td>{record.user_id || '未知'}</td>
                           <td>
                             <button 
-                              className="btn btn-sm btn-danger"
+                              className="btn btn-sm btn-primary"
                               onClick={() => confirmDeleteAccounting(record)}
                               title="删除记录"
                             >
@@ -838,7 +838,7 @@ function Admin({ user }) {
             <div className="col-md-3 col-sm-6">
               <div className="admin-stat-card p-3 bg-light rounded text-center border border-light">
                 <div className="info-box-content">
-                  <i className="bi bi-person-check text-success mb-2" style={{ fontSize: '1.5rem' }}></i>
+                  <i className="bi bi-person-check text-primary mb-2" style={{ fontSize: '1.5rem' }}></i>
                   <div className="info-box-text text-muted mb-1">管理员数</div>
                   <div className="info-box-number h5">{users.filter(u => u.user_type === 'admin').length}</div>
                 </div>
@@ -847,7 +847,7 @@ function Admin({ user }) {
             <div className="col-md-3 col-sm-6">
               <div className="admin-stat-card p-3 bg-light rounded text-center border border-light">
                 <div className="info-box-content">
-                  <i className="bi bi-megaphone text-info mb-2" style={{ fontSize: '1.5rem' }}></i>
+                  <i className="bi bi-megaphone text-primary mb-2" style={{ fontSize: '1.5rem' }}></i>
                   <div className="info-box-text text-muted mb-1">公告数</div>
                   <div className="info-box-number h5">{announcements.length}</div>
                 </div>
